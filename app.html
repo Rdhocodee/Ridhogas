@@ -1256,7 +1256,7 @@
   <script>
     // Konfigurasi backend
     // Di bagian atas file
-const BACKEND_URL = window.location.origin; // Ganti dengan URL backend Anda
+const BACKEND_URL = process.env.BACKEND_URL || window.location.origin;; // Ganti dengan URL backend Anda
     
     // Variabel global
     let currentUser = null;
