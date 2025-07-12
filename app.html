@@ -883,7 +883,12 @@
     }
   </style>
 </head>
+  
 <body>
+  <<script>
+  const BACKEND_URL = process.env.BACKEND_URL || window.location.origin;
+  console.log('Backend URL:', BACKEND_URL); // Check browser console
+</script>
   <div class="star-field"></div>
 
   <div id="login-page" class="login-container">
@@ -1255,8 +1260,7 @@
 
   <script>
     // Konfigurasi backend
-    // Di bagian atas file
-const BACKEND_URL = process.env.BACKEND_URL || window.location.origin;; // Ganti dengan URL backend Anda
+    // // Ganti dengan URL backend Anda
     
     // Variabel global
     let currentUser = null;
