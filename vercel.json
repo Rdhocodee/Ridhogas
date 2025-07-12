@@ -1,0 +1,17 @@
+{
+  "builds": [
+    {
+      "src": "app.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/app.html"
+    }
+  ],
+  "env": {
+    "BACKEND_URL": "https://backend-domain-anda.com"
+  }
+}
