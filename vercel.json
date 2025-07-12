@@ -12,6 +12,6 @@
     }
   ],
   "env": {
-    "BACKEND_URL": "https://backend-domain-anda.com"
+    "BACKEND_URL": "http://157.230.252.105:3000"
   }
 }
