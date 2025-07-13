@@ -1330,24 +1330,41 @@
     
     // Login function
     async function login() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  
+  // Inisialisasi variabel penting
+  const username = document.getElementById('username')?.value.trim();
+  const password = document.getElementById('password')?.value.trim();
+  const loginLoader = document.getElementById('login-loader');
+  const glowButton = document.querySelector('.glow-button');
+  const addaccNavItem = document.getElementById('addacc-nav-item');
+  const privateToolsNavItem = document.getElementById('private-tools-nav-item');
+  const loginPage = document.getElementById('login-page');
+  const homePage = document.getElementById('home-page');
+  const navbar = document.getElementById('navbar');
+  const addaccPage = document.getElementById('addacc-page');
+
+  // Validasi input
   if (!username || !password) {
     alert('Silakan isi username dan password dengan benar!');
     return;
   }
-  
+
   if (username.length < 4 || password.length < 4) {
     alert('Username dan password harus minimal 4 karakter!');
     return;
   }
-  
-  // Show loader
+
+  // Validasi elemen DOM
+  if (!loginLoader || !glowButton || !loginPage || !homePage || !navbar) {
+    alert('System error: UI elements not loaded properly');
+    return;
+  }
+
+  // Tampilkan loader dan nonaktifkan button
   loginLoader.style.display = 'block';
-  document.querySelector('.glow-button').disabled = true;
-  
+  glowButton.disabled = true;
+
   try {
+    // Kirim request login
     const response = await fetch(`${BACKEND_URL}/api/login`, {
       method: 'POST',
       headers: {
@@ -1355,52 +1372,72 @@
       },
       body: JSON.stringify({ username, password })
     });
-    
+
+    // Handle response
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || `HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     
     if (!data) {
       throw new Error('Invalid response from server');
     }
-    
+
     if (data.success) {
-      currentUser = data.user;
+      // Set user data
+      currentUser = data.user || {};
       currentRole = currentUser.role || 'member';
-      
+
       // Update UI elements
-      document.querySelectorAll('.user-name').forEach(el => el.textContent = currentUser.name);
-      document.querySelectorAll('.user-role').forEach(el => {
-        const badge = el.querySelector('.role-badge');
-        badge.textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
-        badge.className = 'role-badge ' + currentRole;
+      document.querySelectorAll('.user-name').forEach(el => {
+        if (el) el.textContent = currentUser.name || '';
       });
-      
-      showExpiredInfo(currentUser);
+
+      document.querySelectorAll('.user-role').forEach(el => {
+        const badge = el?.querySelector('.role-badge');
+        if (badge) {
+          badge.textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+          badge.className = 'role-badge ' + currentRole;
+        }
+      });
+
+      // Tampilkan info expired jika ada
+      if (typeof showExpiredInfo === 'function') {
+        showExpiredInfo(currentUser);
+      }
+
+      // Update tampilan halaman
       loginPage.style.display = 'none';
       homePage.classList.add('active');
       navbar.style.display = 'flex';
-      
-      // Handle role-based UI
-      addaccNavItem.style.display = currentRole === 'member' ? 'none' : 'flex';
-      privateToolsNavItem.style.display = (currentRole === 'ownerlite' || currentRole === 'owner') ? 'flex' : 'none';
-      
-      // Load accounts list if needed
-      if (addaccPage.classList.contains('active')) {
+
+      // Atur tampilan menu berdasarkan role
+      if (addaccNavItem) {
+        addaccNavItem.style.display = ['owner', 'ownerlite', 'reseller', 'reseller_vip'].includes(currentRole) ? 'flex' : 'none';
+      }
+
+      if (privateToolsNavItem) {
+        privateToolsNavItem.style.display = ['owner', 'ownerlite'].includes(currentRole) ? 'flex' : 'none';
+      }
+
+      // Load accounts list jika diperlukan
+      if (addaccPage?.classList.contains('active') && typeof loadAccountsList === 'function') {
         loadAccountsList();
       }
-      
-      startCooldown();
+
+      // Start cooldown jika ada
+      if (typeof startCooldown === 'function') {
+        startCooldown();
+      }
     } else {
       alert(data.message || 'Login gagal! Username atau password salah.');
     }
   } catch (error) {
     console.error('Login error:', error);
     
-    // More specific error messages
+    // Pesan error spesifik
     if (error.message.includes('Failed to fetch')) {
       alert('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
     } else if (error.message.includes('Unexpected token')) {
@@ -1409,8 +1446,9 @@
       alert(`Login gagal: ${error.message}`);
     }
   } finally {
-    loginLoader.style.display = 'none';
-    document.querySelector('.glow-button').disabled = false;
+    // Sembunyikan loader dan aktifkan button
+    if (loginLoader) loginLoader.style.display = 'none';
+    if (glowButton) glowButton.disabled = false;
   }
 }
     // Demo login function
