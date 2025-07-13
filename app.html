@@ -1357,15 +1357,21 @@
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
+    
+    if (!data) {
+      throw new Error('Invalid response from server');
+    }
     
     if (data.success) {
       currentUser = data.user;
       currentRole = currentUser.role || 'member';
       
+      // Update UI elements
       document.querySelectorAll('.user-name').forEach(el => el.textContent = currentUser.name);
       document.querySelectorAll('.user-role').forEach(el => {
         const badge = el.querySelector('.role-badge');
@@ -1378,18 +1384,11 @@
       homePage.classList.add('active');
       navbar.style.display = 'flex';
       
-      if (currentRole === 'member') {
-        addaccNavItem.style.display = 'none';
-        privateToolsNavItem.style.display = 'none';
-      } else if (currentRole === 'reseller' || currentRole === 'reseller_vip') {
-        addaccNavItem.style.display = 'flex';
-        privateToolsNavItem.style.display = 'none';
-      } else if (currentRole === 'ownerlite' || currentRole === 'owner') {
-        addaccNavItem.style.display = 'flex';
-        privateToolsNavItem.style.display = 'flex';
-      }
+      // Handle role-based UI
+      addaccNavItem.style.display = currentRole === 'member' ? 'none' : 'flex';
+      privateToolsNavItem.style.display = (currentRole === 'ownerlite' || currentRole === 'owner') ? 'flex' : 'none';
       
-      // Load accounts list if on addacc page
+      // Load accounts list if needed
       if (addaccPage.classList.contains('active')) {
         loadAccountsList();
       }
@@ -1400,7 +1399,15 @@
     }
   } catch (error) {
     console.error('Login error:', error);
-    alert('Terjadi kesalahan saat login. Silakan coba lagi.');
+    
+    // More specific error messages
+    if (error.message.includes('Failed to fetch')) {
+      alert('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+    } else if (error.message.includes('Unexpected token')) {
+      alert('Respons server tidak valid. Silakan hubungi administrator.');
+    } else {
+      alert(`Login gagal: ${error.message}`);
+    }
   } finally {
     loginLoader.style.display = 'none';
     document.querySelector('.glow-button').disabled = false;
